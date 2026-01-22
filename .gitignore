@@ -1,0 +1,25 @@
+# Environment variables (API keys)
+.env
+.env.local
+.env.*.local
+
+# Never commit these patterns (extra safety)
+*.pem
+*.key
+secrets.json
+credentials.json
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
