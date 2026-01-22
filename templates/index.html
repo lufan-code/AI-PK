@@ -543,6 +543,47 @@
             margin-left: auto;
         }
 
+        /* Copy Button */
+        .copy-btn {
+            margin-left: auto;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+
+        .copy-btn.copied {
+            background: rgba(16, 163, 127, 0.5);
+        }
+
+        .copy-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
         /* OpenAI Arbiter Section */
         .arbiter-section {
             background: var(--bg-card);
@@ -756,6 +797,261 @@
             animation: pulse 1.5s ease-in-out infinite;
         }
 
+        /* History Panel */
+        .history-toggle-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 18px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .history-toggle-btn:hover {
+            background: var(--bg-secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .history-toggle-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .history-count {
+            background: var(--gemini-color);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .history-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 380px;
+            height: 100vh;
+            background: var(--bg-card);
+            border-left: 1px solid var(--border-color);
+            z-index: 1001;
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .history-panel.open {
+            right: 0;
+        }
+
+        .history-panel-header {
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .history-panel-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .history-close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.2s;
+        }
+
+        .history-close-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .history-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .history-list::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        .history-list::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .history-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .history-item:hover {
+            border-color: var(--gemini-color);
+            transform: translateX(-5px);
+            box-shadow: 5px 0 20px rgba(66, 133, 244, 0.2);
+        }
+
+        .history-item-question {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .history-item-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .history-item-models {
+            display: flex;
+            gap: 5px;
+        }
+
+        .history-model-tag {
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .history-item-time {
+            margin-left: auto;
+        }
+
+        .history-item-delete {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 107, 53, 0.2);
+            border: none;
+            border-radius: 6px;
+            color: #ff6b35;
+            padding: 5px 8px;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.2s;
+        }
+
+        .history-item:hover .history-item-delete {
+            opacity: 1;
+        }
+
+        .history-item-delete:hover {
+            background: rgba(255, 107, 53, 0.4);
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .history-empty-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .history-panel-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+        }
+
+        .history-clear-btn {
+            width: 100%;
+            background: rgba(255, 107, 53, 0.2);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            border-radius: 10px;
+            padding: 12px;
+            color: #ff6b35;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .history-clear-btn:hover {
+            background: rgba(255, 107, 53, 0.3);
+        }
+
+        .history-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .history-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .consensus-tag {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .consensus-tag.success {
+            background: rgba(16, 163, 127, 0.2);
+            color: #10a37f;
+        }
+
+        .consensus-tag.warning {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+
         /* Responsive */
         @media (max-width: 900px) {
             .response-grid {
@@ -782,6 +1078,37 @@
 </head>
 
 <body>
+    <!-- History Toggle Button -->
+    <button class="history-toggle-btn" onclick="toggleHistoryPanel()" title="View conversation history">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        History
+        <span class="history-count" id="historyCount">0</span>
+    </button>
+
+    <!-- History Overlay -->
+    <div class="history-overlay" id="historyOverlay" onclick="toggleHistoryPanel()"></div>
+
+    <!-- History Panel -->
+    <div class="history-panel" id="historyPanel">
+        <div class="history-panel-header">
+            <div class="history-panel-title">
+                📜 Conversation History
+            </div>
+            <button class="history-close-btn" onclick="toggleHistoryPanel()">×</button>
+        </div>
+        <div class="history-list" id="historyList">
+            <!-- History items will be inserted here -->
+        </div>
+        <div class="history-panel-footer">
+            <button class="history-clear-btn" onclick="clearAllHistory()">
+                🗑️ Clear All History
+            </button>
+        </div>
+    </div>
+
     <div class="container">
         <header class="header">
             <h1>🔍 AI PK System</h1>
@@ -828,9 +1155,18 @@
             <div class="response-card" id="cardA">
                 <div class="response-header" id="headerA"
                     style="background: linear-gradient(135deg, #4285f4, #34a853);">
-                    <div class="ai-icon" id="iconA">G</div>
-                    <span class="response-title" id="titleA">Model A</span>
-                    <span class="revision-badge" id="badgeA" style="display: none;"></span>
+                    <div class="header-content">
+                        <div class="ai-icon" id="iconA">G</div>
+                        <span class="response-title" id="titleA">Model A</span>
+                        <span class="revision-badge" id="badgeA" style="display: none;"></span>
+                    </div>
+                    <button class="copy-btn" onclick="copyContent('responseA', this)" title="Copy Model A response">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Copy
+                    </button>
                 </div>
                 <div class="response-content">
                     <div class="response-text" id="responseA">
@@ -843,9 +1179,18 @@
             <div class="response-card" id="cardB">
                 <div class="response-header" id="headerB"
                     style="background: linear-gradient(135deg, #ff6b35, #ff8c42);">
-                    <div class="ai-icon" id="iconB">X</div>
-                    <span class="response-title" id="titleB">Model B</span>
-                    <span class="revision-badge" id="badgeB" style="display: none;"></span>
+                    <div class="header-content">
+                        <div class="ai-icon" id="iconB">X</div>
+                        <span class="response-title" id="titleB">Model B</span>
+                        <span class="revision-badge" id="badgeB" style="display: none;"></span>
+                    </div>
+                    <button class="copy-btn" onclick="copyContent('responseB', this)" title="Copy Model B response">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Copy
+                    </button>
                 </div>
                 <div class="response-content">
                     <div class="response-text" id="responseB">
@@ -919,6 +1264,319 @@
             doubao: { gradient: 'linear-gradient(135deg, #00d4aa, #00a085)', color: '#00d4aa', icon: '豆' },
             qwen: { gradient: 'linear-gradient(135deg, #ff5722, #e64a19)', color: '#ff5722', icon: '千' }
         };
+
+        // ==================== History Management ====================
+        const HISTORY_KEY = 'ai_pk_history';
+        let conversationHistory = [];
+        let currentConversation = null;
+
+        // Load history from localStorage on page load
+        function loadHistory() {
+            try {
+                const saved = localStorage.getItem(HISTORY_KEY);
+                if (saved) {
+                    conversationHistory = JSON.parse(saved);
+                }
+            } catch (e) {
+                console.error('Failed to load history:', e);
+                conversationHistory = [];
+            }
+            updateHistoryCount();
+            renderHistoryList();
+        }
+
+        // Save history to localStorage
+        function saveHistory() {
+            try {
+                localStorage.setItem(HISTORY_KEY, JSON.stringify(conversationHistory));
+                updateHistoryCount();
+                renderHistoryList();
+            } catch (e) {
+                console.error('Failed to save history:', e);
+            }
+        }
+
+        // Update history count badge
+        function updateHistoryCount() {
+            document.getElementById('historyCount').textContent = conversationHistory.length;
+        }
+
+        // Toggle history panel
+        function toggleHistoryPanel() {
+            const panel = document.getElementById('historyPanel');
+            const overlay = document.getElementById('historyOverlay');
+            panel.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+
+        // Start a new conversation (called at the beginning of verification)
+        function startNewConversation(question, modelA, modelB) {
+            currentConversation = {
+                id: Date.now(),
+                question: question,
+                modelA: modelA,
+                modelB: modelB,
+                timestamp: new Date().toISOString(),
+                responseA: '',
+                responseB: '',
+                arbiterA: '',
+                arbiterB: '',
+                consensus: null,
+                consensusRound: null,
+                reviews: [],
+                revisionsA: 0,
+                revisionsB: 0
+            };
+        }
+
+        // Update current conversation with data
+        function updateCurrentConversation(data) {
+            if (!currentConversation) return;
+
+            switch (data.type) {
+                case 'model_a_initial':
+                case 'model_a_revised':
+                    currentConversation.responseA = data.content;
+                    if (data.type === 'model_a_revised') {
+                        currentConversation.revisionsA++;
+                    }
+                    break;
+                case 'model_b_initial':
+                case 'model_b_revised':
+                    currentConversation.responseB = data.content;
+                    if (data.type === 'model_b_revised') {
+                        currentConversation.revisionsB++;
+                    }
+                    break;
+                case 'arbiter':
+                    currentConversation.arbiterA = data.model_a_analysis;
+                    currentConversation.arbiterB = data.model_b_analysis;
+                    break;
+                case 'review':
+                    currentConversation.reviews.push(data);
+                    break;
+                case 'consensus':
+                    currentConversation.consensus = data.reached;
+                    currentConversation.consensusRound = data.round;
+                    break;
+                case 'final':
+                    // Save the completed conversation
+                    saveConversation();
+                    break;
+            }
+        }
+
+        // Save completed conversation to history
+        function saveConversation() {
+            if (!currentConversation) return;
+
+            // Add to beginning of array (most recent first)
+            conversationHistory.unshift(currentConversation);
+
+            // Keep only last 50 conversations
+            if (conversationHistory.length > 50) {
+                conversationHistory = conversationHistory.slice(0, 50);
+            }
+
+            saveHistory();
+            currentConversation = null;
+        }
+
+        // Render history list
+        function renderHistoryList() {
+            const container = document.getElementById('historyList');
+
+            if (conversationHistory.length === 0) {
+                container.innerHTML = `
+                    <div class="history-empty">
+                        <div class="history-empty-icon">📭</div>
+                        <div>No conversations yet</div>
+                        <div style="font-size: 0.85rem; margin-top: 8px;">Your verification sessions will appear here</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = conversationHistory.map((conv, index) => {
+                const date = new Date(conv.timestamp);
+                const timeStr = formatTimeAgo(date);
+                const modelAColor = modelColors[conv.modelA]?.color || '#4285f4';
+                const modelBColor = modelColors[conv.modelB]?.color || '#ff6b35';
+                const consensusClass = conv.consensus ? 'success' : 'warning';
+                const consensusText = conv.consensus ? '✓' : '⚠';
+
+                return `
+                    <div class="history-item" onclick="restoreConversation(${index})">
+                        <button class="history-item-delete" onclick="event.stopPropagation(); deleteHistory(${index})" title="Delete">🗑️</button>
+                        <div class="history-item-question">${escapeHtml(conv.question)}</div>
+                        <div class="history-item-meta">
+                            <div class="history-item-models">
+                                <span class="history-model-tag" style="background: ${modelAColor}20; color: ${modelAColor};">${conv.modelA}</span>
+                                <span class="history-model-tag" style="background: ${modelBColor}20; color: ${modelBColor};">${conv.modelB}</span>
+                            </div>
+                            <span class="consensus-tag ${consensusClass}">${consensusText}</span>
+                            <span class="history-item-time">${timeStr}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Format time ago
+        function formatTimeAgo(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            return date.toLocaleDateString();
+        }
+
+        // Restore a conversation from history
+        function restoreConversation(index) {
+            const conv = conversationHistory[index];
+            if (!conv) return;
+
+            // Close history panel
+            toggleHistoryPanel();
+
+            // Set the question input
+            document.getElementById('questionInput').value = conv.question;
+
+            // Set model selectors
+            document.getElementById('modelA').value = conv.modelA;
+            document.getElementById('modelB').value = conv.modelB;
+
+            // Reset UI first
+            resetUI();
+
+            // Update card styles
+            updateCardStyles(conv.modelA, conv.modelB,
+                { name: conv.modelA, icon: modelColors[conv.modelA]?.icon || 'A' },
+                { name: conv.modelB, icon: modelColors[conv.modelB]?.icon || 'B' }
+            );
+
+            // Restore responses
+            if (conv.responseA) {
+                const elA = document.getElementById('responseA');
+                elA.innerHTML = renderMarkdown(conv.responseA);
+                elA.classList.add('loaded', 'markdown-content');
+            }
+
+            if (conv.responseB) {
+                const elB = document.getElementById('responseB');
+                elB.innerHTML = renderMarkdown(conv.responseB);
+                elB.classList.add('loaded', 'markdown-content');
+            }
+
+            // Restore revision badges
+            if (conv.revisionsA > 0) {
+                const badgeA = document.getElementById('badgeA');
+                badgeA.textContent = `Revised ×${conv.revisionsA}`;
+                badgeA.style.display = 'inline-block';
+            }
+
+            if (conv.revisionsB > 0) {
+                const badgeB = document.getElementById('badgeB');
+                badgeB.textContent = `Revised ×${conv.revisionsB}`;
+                badgeB.style.display = 'inline-block';
+            }
+
+            // Restore arbiter analysis
+            if (conv.arbiterA) {
+                document.getElementById('arbiterA').innerHTML = formatArbiterResponse(conv.arbiterA, 'arbiter-a');
+            }
+
+            if (conv.arbiterB) {
+                document.getElementById('arbiterB').innerHTML = formatArbiterResponse(conv.arbiterB, 'arbiter-b');
+            }
+
+            // Restore consensus banner
+            if (conv.consensus !== null) {
+                const banner = document.getElementById('consensusBanner');
+                const badge = document.getElementById('consensusBadge');
+                banner.style.display = 'block';
+
+                if (conv.consensus) {
+                    badge.className = 'consensus-badge success';
+                    badge.innerHTML = '<span class="consensus-icon">✓</span><span>Consensus Reached in Round ' + conv.consensusRound + '</span>';
+                } else {
+                    badge.className = 'consensus-badge warning';
+                    badge.innerHTML = '<span class="consensus-icon">⚠</span><span>Max Rounds Reached - Partial Consensus</span>';
+                }
+            }
+
+            // Restore review section
+            if (conv.reviews && conv.reviews.length > 0) {
+                reviews = conv.reviews;
+                document.getElementById('reviewSection').style.display = 'block';
+                document.getElementById('reviewDetails').innerHTML = '';
+
+                // Group reviews by round
+                const rounds = [...new Set(conv.reviews.map(r => r.round))];
+                for (const round of rounds) {
+                    updateReviewDetails(round);
+                }
+            }
+        }
+
+        // Delete a history item
+        function deleteHistory(index) {
+            if (confirm('Delete this conversation from history?')) {
+                conversationHistory.splice(index, 1);
+                saveHistory();
+            }
+        }
+
+        // Clear all history
+        function clearAllHistory() {
+            if (confirm('Clear all conversation history? This cannot be undone.')) {
+                conversationHistory = [];
+                saveHistory();
+            }
+        }
+
+        // Initialize history on page load
+        document.addEventListener('DOMContentLoaded', loadHistory);
+        // ==================== End History Management ====================
+
+        // Copy content function for AI response cards
+        function copyContent(elementId, button) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            // Get the text content (strips HTML tags)
+            const text = element.innerText || element.textContent;
+
+            // Don't copy placeholder text
+            if (text.includes("response will appear here")) {
+                return;
+            }
+
+            navigator.clipboard.writeText(text).then(() => {
+                // Visual feedback
+                const originalText = button.innerHTML;
+                button.classList.add('copied');
+                button.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Copied!
+                `;
+
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                    button.innerHTML = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
 
         function resetUI() {
             document.getElementById('responseA').innerHTML = '<span class="placeholder-text">Model A\'s response will appear here...</span>';
@@ -1053,6 +1711,9 @@
             submitBtn.disabled = true;
             setStatus('Initializing verification...');
 
+            // Start tracking this conversation for history
+            startNewConversation(question, modelA, modelB);
+
             try {
                 const response = await fetch('/verify', {
                     method: 'POST',
@@ -1087,6 +1748,9 @@
         }
 
         function handleUpdate(data) {
+            // Update history tracking
+            updateCurrentConversation(data);
+
             switch (data.type) {
                 case 'models':
                     updateCardStyles(data.model_a, data.model_b, data.model_a_info, data.model_b_info);
