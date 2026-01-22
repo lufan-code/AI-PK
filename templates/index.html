@@ -182,6 +182,157 @@
             transform: none;
         }
 
+        /* Session Controls */
+        .session-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .session-btn {
+            border: none;
+            border-radius: 12px;
+            padding: 14px 28px;
+            color: white;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .start-session-btn {
+            background: linear-gradient(135deg, #10a37f, #1a7f64);
+        }
+
+        .start-session-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(16, 163, 127, 0.3);
+        }
+
+        .stop-session-btn {
+            background: linear-gradient(135deg, #ff6b35, #e55a2b);
+        }
+
+        .stop-session-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+        }
+
+        .session-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .session-indicator.active {
+            border-color: #10a37f;
+            background: rgba(16, 163, 127, 0.1);
+        }
+
+        .session-pulse {
+            width: 10px;
+            height: 10px;
+            background: #10a37f;
+            border-radius: 50%;
+            animation: sessionPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes sessionPulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(1.2);
+            }
+        }
+
+        .session-info {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .session-info strong {
+            color: var(--text-primary);
+        }
+
+        .model-locked {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        /* Question Tabs for Session History */
+        .question-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .question-tab {
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px 8px 0 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .question-tab:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        .question-tab.active {
+            background: var(--gemini-color);
+            color: white;
+            border-color: var(--gemini-color);
+        }
+
+        .question-content {
+            display: none;
+        }
+
+        .question-content.active {
+            display: block;
+        }
+
+        .session-question-header {
+            background: var(--bg-secondary);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--gemini-color);
+        }
+
+        .session-question-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .session-question-text {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
         /* Status Bar */
         .status-bar {
             background: var(--bg-secondary);
@@ -1116,7 +1267,24 @@
         </header>
 
         <div class="input-section">
-            <div class="model-selectors">
+            <!-- Session Controls -->
+            <div class="session-controls">
+                <button class="session-btn start-session-btn" id="startSessionBtn" onclick="startSession()">
+                    🟢 Start New Check
+                </button>
+                <button class="session-btn stop-session-btn" id="stopSessionBtn" onclick="stopSession()"
+                    style="display: none;">
+                    🔴 Stop Check
+                </button>
+                <div class="session-indicator" id="sessionIndicator" style="display: none;">
+                    <div class="session-pulse"></div>
+                    <div class="session-info">
+                        <strong>Session Active</strong> · Questions: <span id="questionCount">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="model-selectors" id="modelSelectors">
                 <div class="model-selector">
                     <label for="modelA">Model A</label>
                     <select id="modelA">
@@ -1136,13 +1304,18 @@
                     </select>
                 </div>
             </div>
-            <div class="input-wrapper">
+            <div class="input-wrapper" id="inputWrapper" style="display: none;">
                 <input type="text" class="question-input" id="questionInput" placeholder="Enter your question here..."
                     autocomplete="off">
                 <button class="submit-btn" id="submitBtn" onclick="submitQuestion()">
                     Verify
                 </button>
             </div>
+        </div>
+
+        <!-- Question Tabs (shown when restoring a session) -->
+        <div class="question-tabs" id="questionTabs" style="display: none;">
+            <!-- Tabs will be inserted here -->
         </div>
 
         <div class="status-bar" id="statusBar">
@@ -1265,10 +1438,15 @@
             qwen: { gradient: 'linear-gradient(135deg, #ff5722, #e64a19)', color: '#ff5722', icon: '千' }
         };
 
-        // ==================== History Management ====================
-        const HISTORY_KEY = 'ai_pk_history';
+        // ==================== Session & History Management ====================
+        const HISTORY_KEY = 'ai_pk_history_v2';  // New key for session-based history
         let conversationHistory = [];
-        let currentConversation = null;
+
+        // Session state
+        let sessionActive = false;
+        let currentSession = null;
+        let currentQuestionData = null;  // Current question being verified
+        let activeQuestionIndex = 0;     // For tabbed view when restoring
 
         // Load history from localStorage on page load
         function loadHistory() {
@@ -1309,13 +1487,92 @@
             overlay.classList.toggle('open');
         }
 
-        // Start a new conversation (called at the beginning of verification)
-        function startNewConversation(question, modelA, modelB) {
-            currentConversation = {
+        // ==================== Session Controls ====================
+
+        // Start a new check session
+        function startSession() {
+            sessionActive = true;
+            const modelA = document.getElementById('modelA').value;
+            const modelB = document.getElementById('modelB').value;
+
+            currentSession = {
                 id: Date.now(),
-                question: question,
+                type: 'session',
                 modelA: modelA,
                 modelB: modelB,
+                startTime: new Date().toISOString(),
+                endTime: null,
+                questions: [],  // Array of question objects
+                totalQuestions: 0
+            };
+
+            // Update UI
+            document.getElementById('startSessionBtn').style.display = 'none';
+            document.getElementById('stopSessionBtn').style.display = 'flex';
+            document.getElementById('sessionIndicator').style.display = 'flex';
+            document.getElementById('sessionIndicator').classList.add('active');
+            document.getElementById('inputWrapper').style.display = 'flex';
+            document.getElementById('modelSelectors').classList.add('model-locked');
+            document.getElementById('questionCount').textContent = '0';
+            document.getElementById('questionTabs').style.display = 'none';
+
+            // Update card styles for session
+            updateCardStyles(modelA, modelB,
+                { name: modelA, icon: modelColors[modelA]?.icon || 'A' },
+                { name: modelB, icon: modelColors[modelB]?.icon || 'B' }
+            );
+
+            // Reset response areas
+            resetUI();
+
+            // Focus on input
+            document.getElementById('questionInput').focus();
+        }
+
+        // Stop the current check session and save to history
+        function stopSession() {
+            if (!sessionActive || !currentSession) return;
+
+            // Only save if there's at least one question
+            if (currentSession.questions.length > 0) {
+                currentSession.endTime = new Date().toISOString();
+                currentSession.totalQuestions = currentSession.questions.length;
+
+                // Add to history
+                conversationHistory.unshift(currentSession);
+
+                // Keep only last 50 sessions
+                if (conversationHistory.length > 50) {
+                    conversationHistory = conversationHistory.slice(0, 50);
+                }
+
+                saveHistory();
+            }
+
+            // Reset session state
+            sessionActive = false;
+            currentSession = null;
+            currentQuestionData = null;
+
+            // Update UI
+            document.getElementById('startSessionBtn').style.display = 'flex';
+            document.getElementById('stopSessionBtn').style.display = 'none';
+            document.getElementById('sessionIndicator').style.display = 'none';
+            document.getElementById('sessionIndicator').classList.remove('active');
+            document.getElementById('inputWrapper').style.display = 'none';
+            document.getElementById('modelSelectors').classList.remove('model-locked');
+            document.getElementById('questionTabs').style.display = 'none';
+
+            // Reset response areas
+            resetUI();
+        }
+
+        // Start tracking a new question within the session
+        function startNewQuestion(question) {
+            if (!sessionActive || !currentSession) return;
+
+            currentQuestionData = {
+                question: question,
                 timestamp: new Date().toISOString(),
                 responseA: '',
                 responseB: '',
@@ -1329,60 +1586,64 @@
             };
         }
 
-        // Update current conversation with data
-        function updateCurrentConversation(data) {
-            if (!currentConversation) return;
+        // Update current question with streaming data
+        function updateCurrentQuestion(data) {
+            if (!currentQuestionData) return;
 
             switch (data.type) {
                 case 'model_a_initial':
                 case 'model_a_revised':
-                    currentConversation.responseA = data.content;
+                    currentQuestionData.responseA = data.content;
                     if (data.type === 'model_a_revised') {
-                        currentConversation.revisionsA++;
+                        currentQuestionData.revisionsA++;
                     }
                     break;
                 case 'model_b_initial':
                 case 'model_b_revised':
-                    currentConversation.responseB = data.content;
+                    currentQuestionData.responseB = data.content;
                     if (data.type === 'model_b_revised') {
-                        currentConversation.revisionsB++;
+                        currentQuestionData.revisionsB++;
                     }
                     break;
                 case 'arbiter':
-                    currentConversation.arbiterA = data.model_a_analysis;
-                    currentConversation.arbiterB = data.model_b_analysis;
+                    currentQuestionData.arbiterA = data.model_a_analysis;
+                    currentQuestionData.arbiterB = data.model_b_analysis;
                     break;
                 case 'review':
-                    currentConversation.reviews.push(data);
+                    currentQuestionData.reviews.push(data);
                     break;
                 case 'consensus':
-                    currentConversation.consensus = data.reached;
-                    currentConversation.consensusRound = data.round;
+                    currentQuestionData.consensus = data.reached;
+                    currentQuestionData.consensusRound = data.round;
                     break;
                 case 'final':
-                    // Save the completed conversation
-                    saveConversation();
+                    // Save the completed question to session
+                    if (currentSession && currentQuestionData) {
+                        currentSession.questions.push(currentQuestionData);
+                        document.getElementById('questionCount').textContent = currentSession.questions.length;
+                    }
+                    currentQuestionData = null;
                     break;
             }
         }
 
-        // Save completed conversation to history
-        function saveConversation() {
-            if (!currentConversation) return;
-
-            // Add to beginning of array (most recent first)
-            conversationHistory.unshift(currentConversation);
-
-            // Keep only last 50 conversations
-            if (conversationHistory.length > 50) {
-                conversationHistory = conversationHistory.slice(0, 50);
+        // Build context for API request (last 5 Q&A pairs)
+        function getSessionContext() {
+            if (!currentSession || currentSession.questions.length === 0) {
+                return [];
             }
 
-            saveHistory();
-            currentConversation = null;
+            // Get last 5 questions as context
+            const recentQuestions = currentSession.questions.slice(-5);
+            return recentQuestions.map(q => ({
+                question: q.question,
+                responseA: q.responseA,
+                responseB: q.responseB
+            }));
         }
 
-        // Render history list
+        // ==================== Render History List ====================
+
         function renderHistoryList() {
             const container = document.getElementById('historyList');
 
@@ -1390,30 +1651,44 @@
                 container.innerHTML = `
                     <div class="history-empty">
                         <div class="history-empty-icon">📭</div>
-                        <div>No conversations yet</div>
-                        <div style="font-size: 0.85rem; margin-top: 8px;">Your verification sessions will appear here</div>
+                        <div>No sessions yet</div>
+                        <div style="font-size: 0.85rem; margin-top: 8px;">Start a check to begin</div>
                     </div>
                 `;
                 return;
             }
 
-            container.innerHTML = conversationHistory.map((conv, index) => {
-                const date = new Date(conv.timestamp);
+            container.innerHTML = conversationHistory.map((session, index) => {
+                const date = new Date(session.startTime || session.timestamp);
                 const timeStr = formatTimeAgo(date);
-                const modelAColor = modelColors[conv.modelA]?.color || '#4285f4';
-                const modelBColor = modelColors[conv.modelB]?.color || '#ff6b35';
-                const consensusClass = conv.consensus ? 'success' : 'warning';
-                const consensusText = conv.consensus ? '✓' : '⚠';
+                const modelAColor = modelColors[session.modelA]?.color || '#4285f4';
+                const modelBColor = modelColors[session.modelB]?.color || '#ff6b35';
+
+                // For session-based items
+                const questionCount = session.questions?.length || 1;
+                const firstQuestion = session.questions?.[0]?.question || session.question || 'Session';
+
+                // Calculate overall consensus
+                let hasConsensus = true;
+                if (session.questions) {
+                    hasConsensus = session.questions.every(q => q.consensus === true);
+                } else {
+                    hasConsensus = session.consensus;
+                }
+
+                const consensusClass = hasConsensus ? 'success' : 'warning';
+                const consensusText = hasConsensus ? '✓' : '⚠';
 
                 return `
-                    <div class="history-item" onclick="restoreConversation(${index})">
+                    <div class="history-item" onclick="restoreSession(${index})">
                         <button class="history-item-delete" onclick="event.stopPropagation(); deleteHistory(${index})" title="Delete">🗑️</button>
-                        <div class="history-item-question">${escapeHtml(conv.question)}</div>
+                        <div class="history-item-question">${escapeHtml(firstQuestion)}</div>
                         <div class="history-item-meta">
                             <div class="history-item-models">
-                                <span class="history-model-tag" style="background: ${modelAColor}20; color: ${modelAColor};">${conv.modelA}</span>
-                                <span class="history-model-tag" style="background: ${modelBColor}20; color: ${modelBColor};">${conv.modelB}</span>
+                                <span class="history-model-tag" style="background: ${modelAColor}20; color: ${modelAColor};">${session.modelA}</span>
+                                <span class="history-model-tag" style="background: ${modelBColor}20; color: ${modelBColor};">${session.modelB}</span>
                             </div>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary);">${questionCount} Q${questionCount > 1 ? 's' : ''}</span>
                             <span class="consensus-tag ${consensusClass}">${consensusText}</span>
                             <span class="history-item-time">${timeStr}</span>
                         </div>
@@ -1437,74 +1712,144 @@
             return date.toLocaleDateString();
         }
 
-        // Restore a conversation from history
-        function restoreConversation(index) {
-            const conv = conversationHistory[index];
-            if (!conv) return;
+        // ==================== Restore Session ====================
+
+        function restoreSession(index) {
+            const session = conversationHistory[index];
+            if (!session) return;
 
             // Close history panel
             toggleHistoryPanel();
 
-            // Set the question input
-            document.getElementById('questionInput').value = conv.question;
+            // Make sure we're not in an active session
+            if (sessionActive) {
+                if (!confirm('You have an active session. Discard it to view history?')) {
+                    return;
+                }
+                sessionActive = false;
+                currentSession = null;
+            }
 
             // Set model selectors
-            document.getElementById('modelA').value = conv.modelA;
-            document.getElementById('modelB').value = conv.modelB;
+            document.getElementById('modelA').value = session.modelA;
+            document.getElementById('modelB').value = session.modelB;
 
+            // Update card styles
+            updateCardStyles(session.modelA, session.modelB,
+                { name: session.modelA, icon: modelColors[session.modelA]?.icon || 'A' },
+                { name: session.modelB, icon: modelColors[session.modelB]?.icon || 'B' }
+            );
+
+            // Handle session-based (multi-question) vs legacy (single question)
+            const questions = session.questions || [session];  // Legacy compatibility
+
+            if (questions.length > 1) {
+                // Show tabs for multi-question sessions
+                renderQuestionTabs(questions);
+                document.getElementById('questionTabs').style.display = 'flex';
+            } else {
+                document.getElementById('questionTabs').style.display = 'none';
+            }
+
+            // Show first question
+            activeQuestionIndex = 0;
+            displayQuestion(questions[0]);
+
+            // Hide input controls, show start button
+            document.getElementById('startSessionBtn').style.display = 'flex';
+            document.getElementById('stopSessionBtn').style.display = 'none';
+            document.getElementById('sessionIndicator').style.display = 'none';
+            document.getElementById('inputWrapper').style.display = 'none';
+            document.getElementById('modelSelectors').classList.remove('model-locked');
+        }
+
+        // Render question tabs
+        function renderQuestionTabs(questions) {
+            const container = document.getElementById('questionTabs');
+            container.innerHTML = questions.map((q, index) => {
+                const shortQuestion = q.question.length > 30 ? q.question.substring(0, 30) + '...' : q.question;
+                return `
+                    <button class="question-tab ${index === 0 ? 'active' : ''}" 
+                            onclick="switchToQuestion(${index})" 
+                            title="${escapeHtml(q.question)}">
+                        Q${index + 1}: ${escapeHtml(shortQuestion)}
+                    </button>
+                `;
+            }).join('');
+
+            // Store questions for tab switching
+            container.dataset.questions = JSON.stringify(questions);
+        }
+
+        // Switch to a different question in tabbed view
+        function switchToQuestion(index) {
+            const container = document.getElementById('questionTabs');
+            const questions = JSON.parse(container.dataset.questions || '[]');
+
+            if (!questions[index]) return;
+
+            // Update active tab
+            const tabs = container.querySelectorAll('.question-tab');
+            tabs.forEach((tab, i) => {
+                tab.classList.toggle('active', i === index);
+            });
+
+            activeQuestionIndex = index;
+            displayQuestion(questions[index]);
+        }
+
+        // Display a single question's data
+        function displayQuestion(questionData) {
             // Reset UI first
             resetUI();
 
-            // Update card styles
-            updateCardStyles(conv.modelA, conv.modelB,
-                { name: conv.modelA, icon: modelColors[conv.modelA]?.icon || 'A' },
-                { name: conv.modelB, icon: modelColors[conv.modelB]?.icon || 'B' }
-            );
+            // Show question header
+            document.getElementById('questionInput').value = questionData.question;
 
             // Restore responses
-            if (conv.responseA) {
+            if (questionData.responseA) {
                 const elA = document.getElementById('responseA');
-                elA.innerHTML = renderMarkdown(conv.responseA);
+                elA.innerHTML = renderMarkdown(questionData.responseA);
                 elA.classList.add('loaded', 'markdown-content');
             }
 
-            if (conv.responseB) {
+            if (questionData.responseB) {
                 const elB = document.getElementById('responseB');
-                elB.innerHTML = renderMarkdown(conv.responseB);
+                elB.innerHTML = renderMarkdown(questionData.responseB);
                 elB.classList.add('loaded', 'markdown-content');
             }
 
             // Restore revision badges
-            if (conv.revisionsA > 0) {
+            if (questionData.revisionsA > 0) {
                 const badgeA = document.getElementById('badgeA');
-                badgeA.textContent = `Revised ×${conv.revisionsA}`;
+                badgeA.textContent = `Revised ×${questionData.revisionsA}`;
                 badgeA.style.display = 'inline-block';
             }
 
-            if (conv.revisionsB > 0) {
+            if (questionData.revisionsB > 0) {
                 const badgeB = document.getElementById('badgeB');
-                badgeB.textContent = `Revised ×${conv.revisionsB}`;
+                badgeB.textContent = `Revised ×${questionData.revisionsB}`;
                 badgeB.style.display = 'inline-block';
             }
 
             // Restore arbiter analysis
-            if (conv.arbiterA) {
-                document.getElementById('arbiterA').innerHTML = formatArbiterResponse(conv.arbiterA, 'arbiter-a');
+            if (questionData.arbiterA) {
+                document.getElementById('arbiterA').innerHTML = formatArbiterResponse(questionData.arbiterA, 'arbiter-a');
             }
 
-            if (conv.arbiterB) {
-                document.getElementById('arbiterB').innerHTML = formatArbiterResponse(conv.arbiterB, 'arbiter-b');
+            if (questionData.arbiterB) {
+                document.getElementById('arbiterB').innerHTML = formatArbiterResponse(questionData.arbiterB, 'arbiter-b');
             }
 
             // Restore consensus banner
-            if (conv.consensus !== null) {
+            if (questionData.consensus !== null) {
                 const banner = document.getElementById('consensusBanner');
                 const badge = document.getElementById('consensusBadge');
                 banner.style.display = 'block';
 
-                if (conv.consensus) {
+                if (questionData.consensus) {
                     badge.className = 'consensus-badge success';
-                    badge.innerHTML = '<span class="consensus-icon">✓</span><span>Consensus Reached in Round ' + conv.consensusRound + '</span>';
+                    badge.innerHTML = '<span class="consensus-icon">✓</span><span>Consensus Reached in Round ' + questionData.consensusRound + '</span>';
                 } else {
                     badge.className = 'consensus-badge warning';
                     badge.innerHTML = '<span class="consensus-icon">⚠</span><span>Max Rounds Reached - Partial Consensus</span>';
@@ -1512,13 +1857,13 @@
             }
 
             // Restore review section
-            if (conv.reviews && conv.reviews.length > 0) {
-                reviews = conv.reviews;
+            if (questionData.reviews && questionData.reviews.length > 0) {
+                reviews = questionData.reviews;
                 document.getElementById('reviewSection').style.display = 'block';
                 document.getElementById('reviewDetails').innerHTML = '';
 
                 // Group reviews by round
-                const rounds = [...new Set(conv.reviews.map(r => r.round))];
+                const rounds = [...new Set(questionData.reviews.map(r => r.round))];
                 for (const round of rounds) {
                     updateReviewDetails(round);
                 }
@@ -1527,7 +1872,7 @@
 
         // Delete a history item
         function deleteHistory(index) {
-            if (confirm('Delete this conversation from history?')) {
+            if (confirm('Delete this session from history?')) {
                 conversationHistory.splice(index, 1);
                 saveHistory();
             }
@@ -1535,15 +1880,16 @@
 
         // Clear all history
         function clearAllHistory() {
-            if (confirm('Clear all conversation history? This cannot be undone.')) {
+            if (confirm('Clear all session history? This cannot be undone.')) {
                 conversationHistory = [];
                 saveHistory();
             }
         }
 
-        // Initialize history on page load
+        // Initialize on page load
         document.addEventListener('DOMContentLoaded', loadHistory);
-        // ==================== End History Management ====================
+        // ==================== End Session & History Management ====================
+
 
         // Copy content function for AI response cards
         function copyContent(elementId, button) {
@@ -1707,18 +2053,32 @@
                 return;
             }
 
+            // Require an active session
+            if (!sessionActive) {
+                alert('Please start a new check session first');
+                return;
+            }
+
             resetUI();
             submitBtn.disabled = true;
             setStatus('Initializing verification...');
 
-            // Start tracking this conversation for history
-            startNewConversation(question, modelA, modelB);
+            // Start tracking this question within the session
+            startNewQuestion(question);
+
+            // Get context from previous questions in session
+            const context = getSessionContext();
 
             try {
                 const response = await fetch('/verify', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ question, model_a: modelA, model_b: modelB })
+                    body: JSON.stringify({
+                        question,
+                        model_a: modelA,
+                        model_b: modelB,
+                        context: context  // Include session context
+                    })
                 });
 
                 const reader = response.body.getReader();
@@ -1744,12 +2104,14 @@
             } finally {
                 submitBtn.disabled = false;
                 setStatus('', false);
+                input.value = '';  // Clear input for next question
+                input.focus();
             }
         }
 
         function handleUpdate(data) {
-            // Update history tracking
-            updateCurrentConversation(data);
+            // Update session tracking
+            updateCurrentQuestion(data);
 
             switch (data.type) {
                 case 'models':

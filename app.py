@@ -201,6 +201,41 @@ def get_model_name(model_id):
     return AVAILABLE_MODELS.get(model_id, {}).get('name', model_id)
 
 
+def build_context_prompt(context, new_question):
+    """
+    Build a prompt that includes conversation context from the session.
+    Context is limited to last 5 Q&A pairs to manage token limits.
+    
+    Args:
+        context: List of previous Q&A pairs [{question, responseA, responseB}, ...]
+        new_question: The current question being asked
+    
+    Returns:
+        A formatted prompt string with context
+    """
+    if not context:
+        return new_question
+    
+    # Limit to last 5 Q&A pairs
+    recent_context = context[-5:] if len(context) > 5 else context
+    
+    prompt_parts = ["这是一个多轮对话的问答环节。以下是之前的对话记录：\n"]
+    
+    for i, item in enumerate(recent_context, 1):
+        prompt_parts.append(f"--- 第 {i} 轮 ---")
+        prompt_parts.append(f"问题: {item.get('question', '')}")
+        if item.get('responseA'):
+            prompt_parts.append(f"AI A 回答: {item['responseA'][:500]}...")  # Truncate long responses
+        if item.get('responseB'):
+            prompt_parts.append(f"AI B 回答: {item['responseB'][:500]}...")
+        prompt_parts.append("")
+    
+    prompt_parts.append("--- 当前问题 ---")
+    prompt_parts.append(f"基于以上对话背景，请回答新问题: {new_question}")
+    
+    return "\n".join(prompt_parts)
+
+
 def create_verification_prompt(question, answer):
     """Build verification prompt"""
     return f"""
@@ -336,6 +371,7 @@ def verify():
     question = request.json.get('question', '')
     model_a = request.json.get('model_a', 'gemini')
     model_b = request.json.get('model_b', 'grok')
+    context = request.json.get('context', [])  # Session context: previous Q&A pairs
     
     if not question.strip():
         return jsonify({'error': 'Please enter a question'}), 400
@@ -349,6 +385,9 @@ def verify():
     model_a_name = get_model_name(model_a)
     model_b_name = get_model_name(model_b)
     
+    # Build context-aware prompt if session has previous Q&A
+    prompt_with_context = build_context_prompt(context, question)
+    
     def generate():
         # Send model info first
         yield json.dumps({
@@ -359,16 +398,16 @@ def verify():
             'model_b_info': AVAILABLE_MODELS[model_b]
         }) + '\n'
         
-        # Step 1: Get initial answers
+        # Step 1: Get initial answers (with session context)
         yield json.dumps({'type': 'status', 'message': f'Getting {model_a_name} response...'}) + '\n'
-        success_a, answer_a = ask_model(model_a, question)
+        success_a, answer_a = ask_model(model_a, prompt_with_context)
         if not success_a:
             yield json.dumps({'type': 'error', 'source': 'model_a', 'message': answer_a}) + '\n'
             return
         yield json.dumps({'type': 'model_a_initial', 'content': answer_a}) + '\n'
         
         yield json.dumps({'type': 'status', 'message': f'Getting {model_b_name} response...'}) + '\n'
-        success_b, answer_b = ask_model(model_b, question)
+        success_b, answer_b = ask_model(model_b, prompt_with_context)
         if not success_b:
             yield json.dumps({'type': 'error', 'source': 'model_b', 'message': answer_b}) + '\n'
             return
